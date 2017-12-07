@@ -1,6 +1,10 @@
 package tablero;
 
-public class Cueva {
+import Agente.Memoria.Transicion;
+
+import java.util.Observable;
+
+public class Cueva extends Observable{
     private Celda[][] cueva;
     private int tesoros;
 
@@ -17,6 +21,29 @@ public class Cueva {
     public void setMounstruo(int fila, int columna){
         cueva[fila][columna].setElemento(Elementos.MONSTRUO);
         extenderEfecto(fila, columna, Celda.HEDOR);
+    }
+
+    public void quitarElemento(int fila, int columna){
+        if (cueva[fila][columna].getElemento() == Elementos.TESORO){
+            tesoros -= 1;
+        }
+        cueva[fila][columna].setElemento(Elementos.SEGURO);
+        quitarEfecto(fila, columna, Celda.HEDOR);
+    }
+
+    private void quitarEfecto(int fila, int columna, int efecto){
+        if (fila > 0) {
+            cueva[fila - 1][columna].quitarPercepcion(efecto);
+        }
+        if (columna < (cueva.length - 1)) {
+            cueva[fila + 1][columna].quitarPercepcion(efecto);
+        }
+        if (columna > 0) {
+            cueva[fila][columna - 1].quitarPercepcion(efecto);
+        }
+        if (columna < (cueva.length - 1)) {
+            cueva[fila][columna + 1].quitarPercepcion(efecto);
+        }
     }
 
     public void setTesoro(int fila, int columna){
@@ -48,21 +75,24 @@ public class Cueva {
         }
     }
 
-    public boolean moveAgente(int filaOrigen, int columnaOrigen, int filaDestino, int columnaDestino){
+    public boolean moveAgente(Transicion transicion){
         int borderPosLimitSup = cueva.length - 1, preBorderPosLimitSup = cueva.length - 2;
         int borderPosLimitInf = 0, preBorderPosLimitInf = 1;
 
-        cueva[filaOrigen][columnaOrigen].setElemento(Elementos.SEGURO);
-        cueva[filaDestino][columnaDestino].setElemento(Elementos.AGENTE);
+
+        cueva[transicion.getFilaOrigen()][transicion.getColumnaOrigen()].setElemento(Elementos.SEGURO);
+        cueva[transicion.getFilaDestino()][transicion.getColumnaDestino()].setElemento(Elementos.AGENTE);
         System.out.println(this.toString());
-        return (filaOrigen == preBorderPosLimitSup && filaDestino == borderPosLimitSup) ||
-                (columnaOrigen == preBorderPosLimitSup && columnaDestino == borderPosLimitSup) ||
-                (filaOrigen == preBorderPosLimitInf && filaDestino == borderPosLimitInf) ||
-                (columnaOrigen == preBorderPosLimitInf && columnaDestino == borderPosLimitInf);
+        setChanged();
+        notifyObservers(transicion);
+        return (transicion.getFilaOrigen() == preBorderPosLimitSup && transicion.getFilaDestino() == borderPosLimitSup) ||
+                (transicion.getColumnaOrigen() == preBorderPosLimitSup && transicion.getColumnaDestino() == borderPosLimitSup) ||
+                (transicion.getFilaOrigen() == preBorderPosLimitInf && transicion.getFilaDestino() == borderPosLimitInf) ||
+                (transicion.getColumnaOrigen() == preBorderPosLimitInf && transicion.getColumnaDestino() == borderPosLimitInf);
     }
 
     public boolean disparo(int fila, int columna){
-        return true;//TO DO
+        return true;//TODO
     }
 
     public Celda getCelda(int fila, int columna){

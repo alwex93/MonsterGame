@@ -3,9 +3,9 @@ package Agente;
 import Agente.Acciones.Accion;
 import Agente.Memoria.MemoriaCueva;
 import Agente.Memoria.Posicion;
+import Agente.Memoria.Transicion;
+import Interfaz.Menu;
 import tablero.Cueva;
-
-import java.util.ArrayList;
 
 public class Agente implements Runnable{
 
@@ -37,22 +37,32 @@ public class Agente implements Runnable{
             percepciones.checkCell(cueva.getCelda(posicionCueva.getFila(), posicionCueva.getColumna()));
             Accion accion = cerebro.obtenerAccion(percepciones, memoria);
             realizarAccion(accion);
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            espera();
+            if (cueva.getTesoros() == 0){
+                sinTesoros = true;
             }
         }
         if (sinTesoros){
             while (!memoria.estaEnSalida()){
                 realizarAccion(cerebro.buscarCaminoSeguro(memoria));
+                espera();
             }
         }
     }
 
+    private void espera(){
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     private void realizarAccion(Accion accion) {
         boolean muertoMonstruo = false, golpe = false;
         Posicion move = posicionCueva;
+        Transicion transicion;
         int movColumna = 0, movFila = 0;
         switch (accion){
             case MORIR:
@@ -62,9 +72,6 @@ public class Agente implements Runnable{
             case TOMAR:
                 tesoros += 1;
                 cueva.takeTesoro();
-                if (cueva.getTesoros() == 0){
-                    sinTesoros = true;
-                }
                 System.out.println("Coger tesoro");
                 break;
             case DISPARAR:
@@ -73,26 +80,30 @@ public class Agente implements Runnable{
                 break;
             case NORTE:
                 move = new Posicion(posicionCueva.getFila() - 1, posicionCueva.getColumna());
+                transicion = new Transicion(posicionCueva.getFila(), posicionCueva.getColumna(), move.getFila(), move.getColumna());
                 movFila -= 1;
-                golpe = cueva.moveAgente(posicionCueva.getFila(), posicionCueva.getColumna(), move.getFila(), move.getColumna());
+                golpe = cueva.moveAgente(transicion);
                 System.out.println("Voy al NORTE");
                 break;
             case SUR:
                 move = new Posicion(posicionCueva.getFila() + 1, posicionCueva.getColumna());
+                transicion = new Transicion(posicionCueva.getFila(), posicionCueva.getColumna(), move.getFila(), move.getColumna());
                 movFila += 1;
-                golpe = cueva.moveAgente(posicionCueva.getFila(), posicionCueva.getColumna(), move.getFila(), move.getColumna());
+                golpe = cueva.moveAgente(transicion);
                 System.out.println("Voy al SUR");
                 break;
             case ESTE:
                 move = new Posicion(posicionCueva.getFila(), posicionCueva.getColumna() + 1);
+                transicion = new Transicion(posicionCueva.getFila(), posicionCueva.getColumna(), move.getFila(), move.getColumna());
                 movColumna += 1;
-                golpe = cueva.moveAgente(posicionCueva.getFila(), posicionCueva.getColumna(), move.getFila(), move.getColumna());
+                golpe = cueva.moveAgente(transicion);
                 System.out.println("Voy al ESTE");
                 break;
             case OESTE:
                 move = new Posicion(posicionCueva.getFila(), posicionCueva.getColumna() - 1);
+                transicion = new Transicion(posicionCueva.getFila(), posicionCueva.getColumna(), move.getFila(), move.getColumna());
                 movColumna -= 1;
-                golpe = cueva.moveAgente(posicionCueva.getFila(), posicionCueva.getColumna(), move.getFila(), move.getColumna());
+                golpe = cueva.moveAgente(transicion);
                 System.out.println("Voy al OESTE");
                 break;
         }
