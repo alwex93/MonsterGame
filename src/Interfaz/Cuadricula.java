@@ -224,6 +224,7 @@ public class Cuadricula extends JPanel implements MouseListener {
         System.out.println(cueva.toString());
         casillas[fila][columna].marcarAgente(true);
         casillas[fila][columna].setElemento(Elementos.AGENTE);
+        cueva.getCelda(fila, columna).setPathImg(Casilla.PATH_AGENTE);
         menu.repaint();
     }
 
@@ -242,5 +243,9 @@ public class Cuadricula extends JPanel implements MouseListener {
         origen.setElemento(Elementos.SEGURO);
         Casilla destino = casillas[transicion.getFilaDestino()][transicion.getColumnaDestino()];
         destino.setElemento(Elementos.AGENTE);
+    }
+
+    public int getN(){
+        return n;
     }
 }

@@ -21,10 +21,8 @@ public class Celda {
         percepciones[RESPLANDOR_POS] |= getPerception(perception, RESPLANDOR);
     }
 
-    public void quitarPercepcion(int perception){
-        percepciones[HEDOR_POS] |= !getPerception(perception, HEDOR);
-        percepciones[BRISA_POS] |= !getPerception(perception, BRISA);
-        percepciones[RESPLANDOR_POS] |= !getPerception(perception, RESPLANDOR);
+    public void quitarPercepcion(int pos){
+        percepciones[pos] = false;
     }
 
     private boolean getPerception(int perception, int mask){
@@ -48,6 +46,9 @@ public class Celda {
                 break;
             case Elementos.AGENTE:
                 this.pathImg = Casilla.PATH_AGENTE;
+                break;
+            case Elementos.CADAVER:
+                pathImg = Casilla.PATH_MUERTO;
                 break;
         }
     }

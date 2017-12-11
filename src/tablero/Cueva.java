@@ -1,5 +1,7 @@
 package tablero;
 
+import Agente.Acciones.Accion;
+import Agente.Memoria.Posicion;
 import Agente.Memoria.Transicion;
 
 import java.util.Observable;
@@ -7,6 +9,7 @@ import java.util.Observable;
 public class Cueva extends Observable{
     private Celda[][] cueva;
     private int tesoros;
+    private int municion;
 
     public Cueva(int n){
         cueva = new Celda[n][n];
@@ -16,33 +19,43 @@ public class Cueva extends Observable{
             }
         }
         tesoros = 0;
+        municion = 0;
     }
 
     public void setMounstruo(int fila, int columna){
         cueva[fila][columna].setElemento(Elementos.MONSTRUO);
         extenderEfecto(fila, columna, Celda.HEDOR);
+        municion += 1;
+    }
+
+    public void setCadaver(int fila, int columna){
+        cueva[fila][columna].setElemento(Elementos.CADAVER);
     }
 
     public void quitarElemento(int fila, int columna){
         if (cueva[fila][columna].getElemento() == Elementos.TESORO){
             tesoros -= 1;
+        } else if (cueva[fila][columna].getElemento() == Elementos.MONSTRUO){
+
+            quitarEfecto(fila, columna, Celda.HEDOR_POS);
+        } else if (cueva[fila][columna].getElemento() == Elementos.PRECIPICIO){
+            quitarEfecto(fila, columna, Celda.BRISA_POS);
         }
         cueva[fila][columna].setElemento(Elementos.SEGURO);
-        quitarEfecto(fila, columna, Celda.HEDOR);
     }
 
-    private void quitarEfecto(int fila, int columna, int efecto){
+    private void quitarEfecto(int fila, int columna, int pos){
         if (fila > 0) {
-            cueva[fila - 1][columna].quitarPercepcion(efecto);
+            cueva[fila - 1][columna].quitarPercepcion(pos);
         }
         if (columna < (cueva.length - 1)) {
-            cueva[fila + 1][columna].quitarPercepcion(efecto);
+            cueva[fila + 1][columna].quitarPercepcion(pos);
         }
         if (columna > 0) {
-            cueva[fila][columna - 1].quitarPercepcion(efecto);
+            cueva[fila][columna - 1].quitarPercepcion(pos);
         }
         if (columna < (cueva.length - 1)) {
-            cueva[fila][columna + 1].quitarPercepcion(efecto);
+            cueva[fila][columna + 1].quitarPercepcion(pos);
         }
     }
 
@@ -64,7 +77,7 @@ public class Cueva extends Observable{
         if (fila > 0) {
             cueva[fila - 1][columna].setPerception(efecto);
         }
-        if (columna < (cueva.length - 1)) {
+        if (fila < (cueva.length - 1)) {
             cueva[fila + 1][columna].setPerception(efecto);
         }
         if (columna > 0) {
@@ -91,8 +104,61 @@ public class Cueva extends Observable{
                 (transicion.getColumnaOrigen() == preBorderPosLimitInf && transicion.getColumnaDestino() == borderPosLimitInf);
     }
 
-    public boolean disparo(int fila, int columna){
-        return true;//TODO
+    public Posicion disparo(Posicion posMonstruo, Posicion posAgenteRelativa, Posicion posAgente){
+        int fila = posAgente.getFila(), columna = posAgente.getColumna();
+
+        switch (obtenerOrientacion(posMonstruo, posAgenteRelativa)){
+            case NORTE:
+                for (; fila > 0; fila--){
+                    if (cueva[fila][columna].getElemento() == Elementos.MONSTRUO){
+                        setCadaver(fila, columna);
+                        return new Posicion(fila, columna);
+                    }
+                }
+                break;
+            case SUR:
+                for (; fila < cueva.length; fila++){
+                    if (cueva[fila][columna].getElemento() == Elementos.MONSTRUO){
+                        setCadaver(fila, columna);
+                        return new Posicion(fila, columna);
+                    }
+                }
+                break;
+            case ESTE:
+                for (; columna < cueva.length; fila++){
+                    if (cueva[fila][columna].getElemento() == Elementos.MONSTRUO){
+                        setCadaver(fila, columna);
+                        return new Posicion(fila, columna);
+                    }
+                }
+                break;
+            case OESTE:
+                for (; columna > 0; fila--){
+                    if (cueva[fila][columna].getElemento() == Elementos.MONSTRUO){
+                        setCadaver(fila, columna);
+                        return new Posicion(fila, columna);
+                    }
+                }
+                break;
+        }
+        return null;
+    }
+
+    private Accion obtenerOrientacion(Posicion posMonstruo, Posicion posAgente){
+        if (posAgente.getFila() == posMonstruo.getFila()){
+            if (posAgente.getColumna() > posMonstruo.getColumna()){
+                return Accion.OESTE;
+            } else if (posAgente.getColumna() < posMonstruo.getColumna()){
+                return Accion.ESTE;
+            }
+        } else if (posAgente.getColumna() == posMonstruo.getColumna()){
+            if (posAgente.getFila() > posMonstruo.getFila()){
+                return Accion.NORTE;
+            } else if (posAgente.getFila() < posMonstruo.getFila()){
+                return Accion.SUR;
+            }
+        }
+        return Accion.MORIR;
     }
 
     public Celda getCelda(int fila, int columna){
@@ -123,7 +189,12 @@ public class Cueva extends Observable{
         return tesoros;
     }
 
-    public void takeTesoro(){
+    public void takeTesoro(Posicion pos){
         tesoros -= 1;
+        cueva[pos.getFila()][pos.getColumna()].quitarPercepcion(Celda.RESPLANDOR_POS);
+    }
+
+    public int getMunicion() {
+        return municion;
     }
 }

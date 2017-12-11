@@ -28,6 +28,7 @@ public class MemoriaCueva {
     }
 
     public void guardarPosicionSegura(){
+        position.setPasado(true);
         guardarNuevaSegura(position);
         guardarNuevaSegura(new Posicion(position.getFila() - 1, position.getColumna()));
         guardarNuevaSegura(new Posicion(position.getFila() + 1, position.getColumna()));
@@ -73,7 +74,7 @@ public class MemoriaCueva {
     private void determinarCelda(Posicion posicionDudosa, int percepcion){
         posicionDudosa.detectarBrisa(position, percepcion);
         posicionDudosa.detectarHedor(position, percepcion);
-        if (posicionDudosa.monstruoEnPosicion() || posicionDudosa.precipicioEnPosicion()){
+        if (posicionDudosa.monstruoEnPosicion()){
             celdasDudosas.remove(posicionDudosa);
             celdasPeligrosas.add(posicionDudosa);
         }
@@ -102,6 +103,54 @@ public class MemoriaCueva {
         return golpes[movimiento];
     }
 
+    public boolean siguienteEsSalida(int movimiento){
+        int fila = position.getFila(), columna = position.getColumna();
+        switch (movimiento){
+            case 1:
+                fila += 1;
+                break;
+            case 2:
+                columna += 1;
+                break;
+            case 3:
+                columna -= 1;
+                break;
+            default:
+                fila -= 1;
+                break;
+
+        }
+        return entradaSalida.equals(new Posicion(fila, columna));
+    }
+
+    public boolean hayMounstruoATiro(){
+        Posicion monstruo = getPoscicionMonstruo();
+
+        return !celdasPeligrosas.isEmpty() &&
+                (monstruo.getFila() == position.getFila() || monstruo.getColumna() == position.getColumna());
+    }
+
+    public void matarMonstruo(Posicion monstruoMuerto){
+        Posicion monstruo = getPoscicionMonstruo();
+        if(monstruo != null && monstruo.equals(monstruoMuerto)){
+            celdasPeligrosas.remove(monstruo);
+            guardarNuevaSegura(new Posicion(monstruo.getFila(), monstruo.getColumna()));
+            guardarNuevaSegura(new Posicion(monstruo.getFila() - 1, monstruo.getColumna()));
+            guardarNuevaSegura(new Posicion(monstruo.getFila() + 1, monstruo.getColumna()));
+            guardarNuevaSegura(new Posicion(monstruo.getFila(), monstruo.getColumna() - 1));
+            guardarNuevaSegura(new Posicion(monstruo.getFila(), monstruo.getColumna() + 1));
+        }
+
+    }
+
+    public Posicion getPoscicionMonstruo(){
+        if (celdasPeligrosas.isEmpty()){
+            return null;
+        } else {
+            return celdasPeligrosas.get(0);
+        }
+    }
+
     public Accion recordarUltimoMovimiento(){
         return ultimoMovimiento;
     }
@@ -120,6 +169,23 @@ public class MemoriaCueva {
 
     public boolean esSeguro(Posicion pos){
         return celdasSeguras.contains(pos);
+    }
+
+    public Posicion getCeldaSegura(Posicion pos){
+        return celdasSeguras.get(celdasSeguras.indexOf(pos));
+    }
+
+    public boolean colindantesSeguras(Posicion pos){
+        return esSeguro(new Posicion(position.getFila() - 1, position.getColumna())) &&
+                esSeguro(new Posicion(position.getFila() + 1, position.getColumna())) &&
+                esSeguro(new Posicion(position.getFila(), position.getColumna() - 1)) &&
+                esSeguro(new Posicion(position.getFila(), position.getColumna() + 1));
+    }
+
+    public void eliminarSegura(Posicion pos){
+        if (celdasSeguras.contains(pos)){
+            celdasSeguras.remove(pos);
+        }
     }
 
 }

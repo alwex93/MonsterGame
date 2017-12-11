@@ -30,6 +30,8 @@ public class Casilla extends JPanel {
     public static final String PATH_SEGURA = "img/ok.png";
     public static final String PATH_VISITADA = "img/ok.png";
     public static final String PATH_FLECHA = "img/flecha.png";
+    public static final String PATH_CLEAN = "img/limpiar.png";
+    public static final String PATH_MUERTO = "img/muerto.png";
     private boolean brisa = false;
     private boolean hedor = false;
     private boolean resplandor = false;
@@ -60,7 +62,9 @@ public class Casilla extends JPanel {
     }
     public void pintarPercepcion (Graphics2D g2d, String path) {
         try {
-            BufferedImage imagenCasilla = ImageIO.read(new File(path));
+            BufferedImage imagenCasilla = ImageIO.read(new File(PATH_CLEAN));
+            g2d.drawImage(imagenCasilla, columna * this.lado + (3 * this.lado) / 7, fila * this.lado + this.lado / 20, this.lado / 6, this.lado / 7, null);
+            imagenCasilla = ImageIO.read(new File(path));
             g2d.drawImage(imagenCasilla, columna * this.lado + (3 * this.lado) / 7, fila * this.lado + this.lado / 20, this.lado / 6, this.lado / 7, null);
         } catch (IOException ex) {
             Logger.getLogger(Casilla.class.getName()).log(Level.SEVERE, null, ex);
@@ -76,6 +80,14 @@ public class Casilla extends JPanel {
 
     public void paintComponent(Graphics g) {
         Graphics2D g2d = (Graphics2D) g;
+        BufferedImage imagenCasilla = null;
+        try {
+            imagenCasilla = ImageIO.read(new File(PATH_CLEAN));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        int constanteX = (2 * this.lado) / 3;
+        g2d.drawImage(imagenCasilla, getCoordenadaX() + this.lado / 2 - constanteX / 2, getCoordenadaY() + +this.lado / 2 - constanteX / 2, constanteX, constanteX, null);
         g2d.setColor(Color.decode("#6D0BDE"));
         g2d.drawRect(this.lado * columna, this.lado * fila, this.lado, this.lado);
 
@@ -98,6 +110,9 @@ public class Casilla extends JPanel {
     public void setElemento (char elemento) {
         agente = Elementos.AGENTE == elemento;
         this.celda.setElemento(elemento);
+        if(elemento == Elementos.SEGURO){
+            celda.setPathImg(PATH_CLEAN);
+        }
     }
     public int getFila() {
         return fila;

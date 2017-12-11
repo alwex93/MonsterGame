@@ -7,14 +7,23 @@ public class Posicion {
     private int columna;
     private boolean[] monstruo;
     private boolean[] precipicio;
-    private int pasos;
+    private final int PESO = 25;
+    private boolean pasado;
 
     public Posicion(int fila, int columna){
         this.fila = fila;
         this.columna = columna;
         monstruo = new boolean[]{false, false, false, false};
         precipicio = new boolean[]{false, false, false, false};
-        pasos = 0;
+        pasado = false;
+    }
+
+    public Posicion(int fila, int columna, boolean pasado){
+        this.fila = fila;
+        this.columna = columna;
+        monstruo = new boolean[]{false, false, false, false};
+        precipicio = new boolean[]{false, false, false, false};
+        this.pasado = pasado;
     }
 
     public void detectarBrisa(Posicion celda, int percepcion){
@@ -32,7 +41,13 @@ public class Posicion {
     }
 
     public boolean monstruoEnPosicion(){
-        return monstruo[0] && monstruo[1] && monstruo[2] && monstruo[3];
+        int probabilidad = 0;
+        for (int pos = 0; pos < 4; pos++){
+            if (monstruo[pos]){
+                probabilidad += PESO;
+            }
+        }
+        return probabilidad >= 50;
     }
 
     public boolean precipicioEnPosicion(){
@@ -79,4 +94,11 @@ public class Posicion {
         return -1;
     }
 
+    public boolean isPasado(){
+        return pasado;
+    }
+
+    public void setPasado(boolean p){
+        pasado = p;
+    }
 }

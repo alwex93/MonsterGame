@@ -42,7 +42,7 @@ public class CuadroSimulacion implements ActionListener {
                     }
                     break;
                 case 5:
-                    menu.getCuadricula().setAgente(3,0);
+                    menu.getCuadricula().setAgente(menu.getCuadricula().getN() - 1,0);
                     menu.repaint();
                     menu.ventana.Empezar();
                     break;

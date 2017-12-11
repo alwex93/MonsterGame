@@ -17,15 +17,20 @@ public class Razonamiento {
     public Accion obtenerAccion(Percepciones percepciones, MemoriaCueva memoria){
         boolean hedor = percepciones.get(Percepciones.HEDOR);
         boolean brisa = percepciones.get(Percepciones.BRISA);
-        boolean golpe = percepciones.get(Percepciones.GOLPE);
         boolean resplandor = percepciones.get(Percepciones.RESPLANDOR);
-        boolean gemido = percepciones.get(Percepciones.GEMIDO);
         boolean muerto = percepciones.get(Percepciones.MUERTO);
+        boolean monstruo = memoria.hayMounstruoATiro();
+        boolean colindantesSeguras = memoria.colindantesSeguras(memoria.getPosition());
 
         if(muerto){
             return Accion.MORIR;
         }else if (resplandor){
             return Accion.TOMAR;
+        } else if(monstruo){
+            return Accion.DISPARAR;
+        } else if (hedor && colindantesSeguras){
+            memoria.guardarPosicionSegura();
+            return randomDirecction(memoria);
         }else if (hedor || brisa){
             memoria.guardarPosicionDudosa(hedor, brisa);
             return Acciones.invertirMovimiento(memoria.recordarUltimoMovimiento());
@@ -40,8 +45,8 @@ public class Razonamiento {
     private Accion randomDirecction(MemoriaCueva memoria){
         int movimiento = getProp();
         Accion ultimoMovimiento = Acciones.invertirMovimiento(memoria.recordarUltimoMovimiento());
-
-        while (movimiento == ultimoMovimiento.ordinal() || memoria.movimientoBloqueado(movimiento)){
+        while (movimiento == ultimoMovimiento.ordinal() ||
+                memoria.movimientoBloqueado(movimiento) || memoria.siguienteEsSalida(movimiento)){
             movimiento = getProp();
         }
 
@@ -67,16 +72,23 @@ public class Razonamiento {
     }
 
     private int calcularPosicionAcercamiento(MemoriaCueva memoria, Posicion salida, Posicion actual){
-        Posicion siguiente = null;
-        while (!memoria.esSeguro(siguiente)){
-            if (salida.getFila() > actual.getFila()){
+        Posicion siguiente = new Posicion(Integer.MAX_VALUE, Integer.MAX_VALUE);
+        boolean probado1 = false, probado2 = false, probado3 = false;
+        while (!memoria.esSeguro(siguiente) && !siguiente.isPasado()){
+            if (salida.getFila() > actual.getFila() && !probado1){
                 siguiente =  new Posicion(actual.getFila() + 1, actual.getColumna());
-            } else if (salida.getFila() < actual.getFila()){
+                probado1 = true;
+            } else if (salida.getFila() < actual.getFila() && !probado2){
                 siguiente =  new Posicion(actual.getFila() - 1, actual.getColumna());
-            } else if (salida.getColumna() < actual.getColumna()){
+                probado2 = true;
+            } else if (salida.getColumna() < actual.getColumna() && !probado3){
                 siguiente =  new Posicion(actual.getFila(), actual.getColumna() - 1);
+                probado3 = true;
             } else if (salida.getColumna() > actual.getColumna()){
                 siguiente =  new Posicion(actual.getFila(), actual.getColumna() + 1);
+            }
+            if (memoria.esSeguro(siguiente)){
+                siguiente = memoria.getCeldaSegura(siguiente);
             }
         }
         return actual.contiguo(siguiente);

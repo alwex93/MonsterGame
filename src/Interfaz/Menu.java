@@ -31,6 +31,7 @@ public class Menu extends JPanel implements Runnable {
     private JButton BSiguiente;
     public int Etapa = 1;
     public int nMonstruos = 0, nTesoros = 0, nPrecipicios = 0;
+    private Thread hilorepintado;
 
     /*          1: Elegir nº de casillas
                 2: Elegir posiciones monstruo
@@ -191,6 +192,13 @@ public class Menu extends JPanel implements Runnable {
     }
 
     @Override
+    public void addNotify(){
+        super.addNotify();
+        hilorepintado = new Thread(this);
+        hilorepintado.start();
+    }
+
+    @Override
     public void run() {
         boolean a = true;
         while (a){
@@ -201,7 +209,7 @@ public class Menu extends JPanel implements Runnable {
 
     private void espera(){
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

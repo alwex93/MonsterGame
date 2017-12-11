@@ -4,7 +4,6 @@ import Agente.Acciones.Accion;
 import Agente.Memoria.MemoriaCueva;
 import Agente.Memoria.Posicion;
 import Agente.Memoria.Transicion;
-import Interfaz.Menu;
 import tablero.Cueva;
 
 public class Agente implements Runnable{
@@ -17,6 +16,7 @@ public class Agente implements Runnable{
     private Percepciones percepciones;
     private boolean vida, sinTesoros;
     private int tesoros;
+    private int municion;
 
     public Agente(Cueva cueva, int fila, int columna){
         this.cueva = cueva;
@@ -27,12 +27,14 @@ public class Agente implements Runnable{
         vida = true;
         sinTesoros = false;
         tesoros = 0;
+        municion = cueva.getMunicion();
     }
 
     @Override
     public void run() {
         posicionCueva = new Posicion(entradaSalida.getFila() + memoria.getFila(),
                 entradaSalida.getColumna() + memoria.getColumna());
+        espera();
         while (vida && !sinTesoros){
             percepciones.checkCell(cueva.getCelda(posicionCueva.getFila(), posicionCueva.getColumna()));
             Accion accion = cerebro.obtenerAccion(percepciones, memoria);
@@ -52,7 +54,7 @@ public class Agente implements Runnable{
 
     private void espera(){
         try {
-            Thread.sleep(2000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -60,7 +62,8 @@ public class Agente implements Runnable{
 
 
     private void realizarAccion(Accion accion) {
-        boolean muertoMonstruo = false, golpe = false;
+        Posicion muertoMonstruo = null;
+        boolean golpe = false;
         Posicion move = posicionCueva;
         Transicion transicion;
         int movColumna = 0, movFila = 0;
@@ -71,11 +74,14 @@ public class Agente implements Runnable{
                 break;
             case TOMAR:
                 tesoros += 1;
-                cueva.takeTesoro();
+                cueva.takeTesoro(posicionCueva);
                 System.out.println("Coger tesoro");
                 break;
             case DISPARAR:
-                muertoMonstruo = cueva.disparo(posicionCueva.getFila(), posicionCueva.getColumna());
+                if (municion > 0){
+                    municion -= 1;
+                }
+                muertoMonstruo = cueva.disparo(memoria.getPoscicionMonstruo(), memoria.getPosition(), posicionCueva);
                 System.out.println("Disparo");
                 break;
             case NORTE:
@@ -107,8 +113,8 @@ public class Agente implements Runnable{
                 System.out.println("Voy al OESTE");
                 break;
         }
-        if (muertoMonstruo){
-            // memoria desde posicionCueva y colindantes HEDOR no afecta
+        if (muertoMonstruo != null){
+            memoria.matarMonstruo(realARelativa(muertoMonstruo));
         }
         percepciones.checkMovimiento(golpe);
         memoria.memorizarUltimoMovimiento(golpe, accion, movFila, movColumna);
@@ -117,5 +123,15 @@ public class Agente implements Runnable{
 
     public int getTesoros(){
         return tesoros;
+    }
+
+    private Posicion relativaAReal(Posicion relativa){
+        return new Posicion(relativa.getFila() + entradaSalida.getFila(),
+                relativa.getColumna() + entradaSalida.getColumna());
+    }
+
+    private Posicion realARelativa(Posicion real){
+        return new Posicion(real.getFila() - entradaSalida.getFila(),
+                real.getColumna() - entradaSalida.getColumna());
     }
 }

@@ -3,7 +3,7 @@ package Interfaz;
 import tablero.Cueva;
 
 import java.net.MalformedURLException;
-import javax.swing.JFrame;
+import javax.swing.*;
 
 public class Ventana extends JFrame{
     public static int ancho = 1080;
@@ -15,7 +15,7 @@ public class Ventana extends JFrame{
         super("La cueva del monstruo");
         setSize(ancho, alto);
         this.setResizable(false);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         this.setLocationRelativeTo(null);
         this.ventana = this;
         this.visualizarMenu();
@@ -42,7 +42,8 @@ public class Ventana extends JFrame{
         InterfazControl controler = new InterfazControl(PMenu);
         PMenu.initSimulador(controler);
         PMenu.repaint();
-        PMenu.run();
+        PMenu.addNotify();
     }
+
 }
 
